@@ -15,6 +15,7 @@ C_SRCS += \
 ../main.c \
 ../sensor_board.c \
 ../sensor_communication.c \
+../supervisor.c \
 ../uart_drv.c 
 
 C_DEPS += \
@@ -24,6 +25,7 @@ C_DEPS += \
 ./main.d \
 ./sensor_board.d \
 ./sensor_communication.d \
+./supervisor.d \
 ./uart_drv.d 
 
 OBJS += \
@@ -33,6 +35,7 @@ OBJS += \
 ./main.obj \
 ./sensor_board.obj \
 ./sensor_communication.obj \
+./supervisor.obj \
 ./uart_drv.obj 
 
 OBJS__QUOTED += \
@@ -42,6 +45,7 @@ OBJS__QUOTED += \
 "main.obj" \
 "sensor_board.obj" \
 "sensor_communication.obj" \
+"supervisor.obj" \
 "uart_drv.obj" 
 
 C_DEPS__QUOTED += \
@@ -51,6 +55,7 @@ C_DEPS__QUOTED += \
 "main.d" \
 "sensor_board.d" \
 "sensor_communication.d" \
+"supervisor.d" \
 "uart_drv.d" 
 
 C_SRCS__QUOTED += \
@@ -60,6 +65,7 @@ C_SRCS__QUOTED += \
 "../main.c" \
 "../sensor_board.c" \
 "../sensor_communication.c" \
+"../supervisor.c" \
 "../uart_drv.c" 
 
 

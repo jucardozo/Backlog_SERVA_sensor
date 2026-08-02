@@ -4,6 +4,7 @@
 "./main.obj"
 "./sensor_board.obj"
 "./sensor_communication.obj"
+"./supervisor.obj"
 "./uart_drv.obj"
 "./driverlib/MSP430FR2xx_4xx/adc.obj"
 "./driverlib/MSP430FR2xx_4xx/crc.obj"

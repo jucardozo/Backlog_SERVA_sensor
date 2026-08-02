@@ -103,12 +103,13 @@ void initGPIO()
 
 void initI2C()
 {
+
     UCB0CTLW0 = UCSWRST;                      // Enable SW reset
     UCB0CTLW0 |= UCMODE_3 | UCMST | UCSSEL__SMCLK | UCSYNC; // I2C master mode, SMCLK
     UCB0BRW = 80;                            // fSCL = SMCLK/10 = ~100kHz
 //    UCB0I2CSA = SLAVE_ADDR;                   // Slave Address
     UCB0CTLW0 &= ~UCSWRST;                    // Clear SW reset, resume operation
-    UCB0IE |= UCNACKIE;
+   // UCB0IE |= UCNACKIE;
 }
 
 void Software_Trim()
@@ -185,10 +186,9 @@ void init_magacc_driver(){
     initGPIO();
     init_uart_drv();
     initI2C();
-    __bis_SR_register(GIE);  // Enable global interrupts
     wakeup_magH();
     wakeup_acc();
-
+  
 }
 
 void reinit_magacc_driver(){

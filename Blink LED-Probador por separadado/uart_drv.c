@@ -22,52 +22,35 @@
 static circular_buffer_t RXbuffer;
 static circular_buffer_t TXbuffer;
 
+
+
 /*Definiciones de funciones*/
-
-
-void test_buffer(void)
-{
-    volatile char dato;
-init_circular_buffer(&TXbuffer);
-
-pop_in_data(&TXbuffer, 'H');
-pop_in_data(&TXbuffer, 'O');
-pop_in_data(&TXbuffer, 'L');
-pop_in_data(&TXbuffer, 'A');
-
-dato = pop_out_data(&TXbuffer);   // H
-dato = pop_out_data(&TXbuffer);   // O
-
-pop_in_data(&TXbuffer, 'X');
-pop_in_data(&TXbuffer, 'Y');
-
-dato = pop_out_data(&TXbuffer);   // L
-dato = pop_out_data(&TXbuffer);   // A
-dato = pop_out_data(&TXbuffer);   // X
-dato = pop_out_data(&TXbuffer);   // Y
-    __no_operation();    // Breakpoint acá
-}
 
 void init_uart_drv(){
 
     init_circular_buffer(&RXbuffer);
     init_circular_buffer(&TXbuffer);
 
-    
-    // Configure UART pins
-   //P1SEL0 |= BIT4 | BIT5;                    // set 2-UART pin as second function
-
-    // Configure UART pins Actual Salida P5.2 - P5.1
-    //P5SEL0 |= BIT1 | BIT2;
-    //P5SEL1 &= ~(BIT1 | BIT2);
-
-    //Configuracion para que la salida sea P2.5 P2.6
+/******************************************************/
+    /*Configuracion para que la salida sea P2.5 P2.6*/
+    /*
     P2SEL0 |= BIT5 | BIT6;
     P2SEL1 &= ~(BIT5 | BIT6);
+    UCA1CTLW0 = UCSWRST;
+    UCA1CTLW0 |= UCSSEL__SMCLK;
 
+    UCA1BR0 = 52;
+    UCA1BR1 = 0;
+    UCA1MCTLW = 0x4900 | UCOS16 | UCBRF_1;
 
+    UCA1CTLW0 &= ~UCSWRST;
+    UCA1IE |= UCRXIE;*/   
 
+/******************************************************/
 
+    //Configuracion para que la salida sea P1.4 (TX) y P1.5(RX)
+    P1SEL0 |= BIT4 | BIT5;
+    P1SEL1 &= ~(BIT4 | BIT5);
 
     // Configure UART
     //UCA0CTLW0 |= UCSWRST; //Software reset enable
@@ -82,15 +65,15 @@ void init_uart_drv(){
     //UCA0BR1 = 0x00;
     //UCA0MCTLW = 0x4900 | UCOS16 | UCBRF_1;
   
-    UCA1CTLW0 = UCSWRST;
-    UCA1CTLW0 |= UCSSEL__SMCLK;
+    UCA0CTLW0 = UCSWRST;
+    UCA0CTLW0 |= UCSSEL__SMCLK;
 
-    UCA1BR0 = 52;
-    UCA1BR1 = 0;
-    UCA1MCTLW = 0x4900 | UCOS16 | UCBRF_1;
+    UCA0BR0 = 52;
+    UCA0BR1 = 0;
+    UCA0MCTLW = 0x4900 | UCOS16 | UCBRF_1;
 
-    UCA1CTLW0 &= ~UCSWRST;
-    UCA1IE |= UCRXIE;               //Habilito interrupciones de RX.
+    UCA0CTLW0 &= ~UCSWRST;
+    UCA0IE |= UCRXIE;               //Habilito interrupciones de RX.
    
 
     //UCA1CTLW0 |= UCPEN;
@@ -111,7 +94,8 @@ void send_msg(char* message, int message_len){
     }
 
    // UCA0IE |= UCTXIE;
-   UCA1IE |= UCTXIE;   //Habilito interrupciones 
+   UCA0IFG |= UCTXIFG;  // forzar flag
+   UCA0IE |= UCTXIE;   //Habilito interrupciones 
 }
 
 char rx_buffer_empty(){
@@ -162,10 +146,10 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
 }*/
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=USCI_A1_VECTOR
-__interrupt void USCI_A1_ISR(void)
+#pragma vector=USCI_A0_VECTOR
+__interrupt void USCI_A0_ISR(void)
 #elif defined(__GNUC__)
-void __attribute__((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR(void)
+void __attribute__((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR(void)
 #else
 #error Compiler not supported!
 #endif
@@ -173,14 +157,14 @@ void __attribute__((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR(void)
     unsigned char aux_rx = 0;
     unsigned char aux_tx = 0;
 
-    switch(__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG))
+    switch(__even_in_range(UCA0IV, USCI_UART_UCTXCPTIFG))
     {
         case USCI_NONE:
             break;
 
         case USCI_UART_UCRXIFG:
             // Se recibió un byte
-            aux_rx = UCA1RXBUF;
+            aux_rx = UCA0RXBUF;
             pop_in_data(&RXbuffer, aux_rx);
             break;
 
@@ -189,11 +173,11 @@ void __attribute__((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR(void)
              if (TXbuffer.distance < BUFSIZE)  //Si hya datos transmito
                 {
                 aux_tx = pop_out_data(&TXbuffer);
-                UCA1TXBUF = aux_tx;
+                UCA0TXBUF = aux_tx;
                 }
             else                //si ya no hay datos, deshailito las interrupciones
                 {
-                UCA1IE &= ~UCTXIE;
+                UCA0IE &= ~UCTXIE;
                 }
             break;
 

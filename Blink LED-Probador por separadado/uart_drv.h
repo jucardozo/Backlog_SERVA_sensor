@@ -17,6 +17,6 @@ char get_last_rx_byte();
 char rx_buffer_empty();
 
 
-void test_buffer(void);
+
 
 #endif /* JOACO_UART_DRV_UART_DRV_H_ */

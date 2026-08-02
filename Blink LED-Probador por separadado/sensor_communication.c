@@ -35,7 +35,7 @@
 #define CFG_REG_B 0x61 //mag config
 #define MAG_XLSB_REG  0x68
 
-extern uint8_t buffer[6] = {0};
+extern uint8_t buffer[8] = {0};
 extern uint8_t cmd_data[2] = {0};
 
 int8_t wakeup_acc(void){
@@ -103,12 +103,13 @@ Accel_Z_in_mg = Accel_Z_int16 / 32768 * 1000 * 2^(<0x41> + 1) * 1.5
 
 
 int8_t wakeup_magH(void){
-    cmd_data[0] = 0b10001100; //  10001101 :temp comp enable[1]+reboot[0]+softrst[0]+lowpower[0]+ODR[11]+MODE[01]
+    cmd_data[0] = 0b10001101; //  10001101 :temp comp enable[1]+reboot[0]+softrst[0]+lowpower[0]+ODR[11]+MODE[01]
     I2C_Master_WriteReg(MAG_SLAVE_ADDR, CFG_REG_A, cmd_data, 1);
     _delay_cycles(5000);
     cmd_data[0] = 0b00000011;
     I2C_Master_WriteReg(MAG_SLAVE_ADDR, CFG_REG_B, cmd_data, 1);
     _delay_cycles(5000);
+
 }
 
 int8_t wakeup_magL(void){
@@ -132,7 +133,7 @@ int8_t get_mag_reading(uint16_t *magx,uint16_t *magy,uint16_t *magz)
 
     //I2C_Master_ReadReg(MAG_SLAVE_ADDR, MAG_XLSB_REG, 6)  Nose que es el 6
     I2C_Master_ReadReg(0x1E, 0x68, 6);//read to result register
-    _delay_cycles(10000);
+    _delay_cycles(50000);
     CopyArray(ReceiveBuffer, buffer, 6);
     *magx= (buffer[1]<<8)+ buffer[0];
     *magy= (buffer[3]<<8)+ buffer[2];
