@@ -46,6 +46,7 @@ main.obj: C:/Users/Usuario/workspace_Bric/Blink\ LED/driverlib/MSP430FR2xx_4xx/e
 main.obj: ../sensor_board.h
 main.obj: ../uart_drv.h
 main.obj: ../supervisor.h
+main.obj: ../low_power_manager.h
 
 ../main.c:
 
@@ -138,4 +139,6 @@ C:/Users/Usuario/workspace_Bric/Blink\ LED/driverlib/MSP430FR2xx_4xx/eusci_b_spi
 ../uart_drv.h:
 
 ../supervisor.h:
+
+../low_power_manager.h:
 

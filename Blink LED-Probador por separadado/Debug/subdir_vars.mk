@@ -12,6 +12,7 @@ C_SRCS += \
 ../RAK_driver.c \
 ../circular_buffer.c \
 ../i2c_driver.c \
+../low_power_manager.c \
 ../main.c \
 ../sensor_board.c \
 ../sensor_communication.c \
@@ -22,6 +23,7 @@ C_DEPS += \
 ./RAK_driver.d \
 ./circular_buffer.d \
 ./i2c_driver.d \
+./low_power_manager.d \
 ./main.d \
 ./sensor_board.d \
 ./sensor_communication.d \
@@ -32,6 +34,7 @@ OBJS += \
 ./RAK_driver.obj \
 ./circular_buffer.obj \
 ./i2c_driver.obj \
+./low_power_manager.obj \
 ./main.obj \
 ./sensor_board.obj \
 ./sensor_communication.obj \
@@ -42,6 +45,7 @@ OBJS__QUOTED += \
 "RAK_driver.obj" \
 "circular_buffer.obj" \
 "i2c_driver.obj" \
+"low_power_manager.obj" \
 "main.obj" \
 "sensor_board.obj" \
 "sensor_communication.obj" \
@@ -52,6 +56,7 @@ C_DEPS__QUOTED += \
 "RAK_driver.d" \
 "circular_buffer.d" \
 "i2c_driver.d" \
+"low_power_manager.d" \
 "main.d" \
 "sensor_board.d" \
 "sensor_communication.d" \
@@ -62,6 +67,7 @@ C_SRCS__QUOTED += \
 "../RAK_driver.c" \
 "../circular_buffer.c" \
 "../i2c_driver.c" \
+"../low_power_manager.c" \
 "../main.c" \
 "../sensor_board.c" \
 "../sensor_communication.c" \

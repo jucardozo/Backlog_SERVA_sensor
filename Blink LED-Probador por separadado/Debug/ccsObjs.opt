@@ -1,6 +1,7 @@
 "./RAK_driver.obj"
 "./circular_buffer.obj"
 "./i2c_driver.obj"
+"./low_power_manager.obj"
 "./main.obj"
 "./sensor_board.obj"
 "./sensor_communication.obj"

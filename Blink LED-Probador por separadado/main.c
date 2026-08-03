@@ -56,6 +56,7 @@
 #include "uart_drv.h"
 #include "uart_drv.h"
 #include "supervisor.h"
+#include "low_power_manager.h"
 
 
 
@@ -67,7 +68,7 @@ void initClockTo8MHz(void);
 bool collect_sample(int16_t*readingval);
 void send_status(bool isturning);
 
-#define COUNT_TOTAL     10    // Cantidad de muestra que toma
+#define COUNT_TOTAL     60    // Cantidad de muestra que toma
 #define THRESHOLD       400    /* ajustar empíricamente en campo */
 
 /* Bits del byte de estado */
@@ -106,6 +107,9 @@ int main(void)
     init_uart_drv();
     __bis_SR_register(GIE);
 
+    /* Inicializar RTC para despertar cada ~1 segundo */
+    init_timer(800);
+
     int16_t readingval = 0;
 
     while(1)
@@ -122,6 +126,7 @@ int main(void)
             send_status(isturning);
         }
         _delay_cycles(50000);  // ~10ms entre muestras
+        enter_lpm();  // ← duerme hasta el próximo tick del RTC
     }
 }
 
