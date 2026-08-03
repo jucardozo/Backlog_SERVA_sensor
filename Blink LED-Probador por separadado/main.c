@@ -54,7 +54,7 @@
 #include <driverlib.h>
 #include "sensor_board.h"
 #include "uart_drv.h"
-#include "uart_drv.h"
+#include "i2c_driver.h"
 #include "supervisor.h"
 #include "low_power_manager.h"
 
@@ -65,11 +65,17 @@
 /***************************/
 
 void initClockTo8MHz(void);
-bool collect_sample(int16_t*readingval);
+bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag);
 void send_status(bool isturning);
 
-#define COUNT_TOTAL     60    // Cantidad de muestra que toma
-#define THRESHOLD       400    /* ajustar empíricamente en campo */
+
+
+#define COUNT_TOTAL     10    // Cantidad de muestra que toma
+
+
+#define THRESHOLD_ACC       700    /* ajustar empíricamente en campo */
+#define THRESHOLD_MAG       28000    /* ajustar empíricamente en campo */
+
 
 /* Bits del byte de estado */
 /* 000X XX00*/
@@ -104,23 +110,29 @@ int main(void)
     WDTCTL = WDTPW | WDTHOLD;
     initClockTo8MHz();
     init_magacc_driver();
+
     init_uart_drv();
     __bis_SR_register(GIE);
 
     /* Inicializar RTC para despertar cada ~1 segundo */
     init_timer(800);
 
-    int16_t readingval = 0;
+    int16_t readingval_acc = 0;
+    int16_t readingval_mag = 0;
+
 
     while(1)
     {
-        if(collect_sample(&readingval))
+
+        if(collect_sample(&readingval_acc, &readingval_mag))
         {
             /* Valor absoluto del promedio */
-            int16_t abs_val = readingval < 0 ? -readingval : readingval;
-
             /* Comparar con umbral */
-            bool isturning = (abs_val > THRESHOLD);
+            bool isturning_acc = (abs(readingval_acc) > THRESHOLD_ACC);
+            bool isturning_mag = ((readingval_mag) > THRESHOLD_MAG);
+
+            /* Votacion Para decidir si esta rotando o no */
+            bool isturning = isturning_acc || isturning_mag;
 
             /* Mandar status */
             send_status(isturning);
@@ -145,27 +157,30 @@ void initClockTo8MHz(void)              //Activo el clock de 8MHz
                                               // default DCODIV as MCLK and SMCLK source
 }
 
-bool collect_sample(int16_t *readingval) //va devolver el valor medio.
+bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
 {
     static int16_t count = 0;
-    static int32_t suma  = 0;
+    static int32_t suma_acc = 0;
+    static int32_t suma_mag = 0;
 
-    int16_t accx = 0;
-    int16_t accy = 0;
-    int16_t accz = 0;
+    int16_t accx = 0, accy = 0, accz = 0;
+    int16_t magx = 0, magy = 0, magz = 0;
 
     read_acc(&accx, &accy, &accz);
+    read_mag(&magx, &magy, &magz);
 
-    suma = suma + (int32_t)accx;  // acumulamos X
+    suma_acc = suma_acc + (int32_t)accx;
+    suma_mag = suma_mag +((int32_t)magx * magx) + ((int32_t)magy * magy);  //suma_mag = suma_mag + (magx² + magy²)
     count += 1;
 
     bool retval = false;
-    if (count == COUNT_TOTAL)
+    if(count == COUNT_TOTAL)
     {
         count = 0;
-        int32_t tentative_readingval = suma / COUNT_TOTAL;
-        suma = 0;
-        *readingval = (int16_t) tentative_readingval;
+        *readingval_acc = (int16_t)(suma_acc / COUNT_TOTAL);
+        *readingval_mag = (int16_t)(suma_mag / COUNT_TOTAL);
+        suma_acc = 0;
+        suma_mag = 0;
         retval = true;
     }
     return retval;
@@ -186,3 +201,6 @@ void send_status(bool isturning)
     send_msg(payload, 2);
     send_msg("\r\n", 2);
 }
+
+
+

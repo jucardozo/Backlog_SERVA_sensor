@@ -103,7 +103,7 @@ Accel_Z_in_mg = Accel_Z_int16 / 32768 * 1000 * 2^(<0x41> + 1) * 1.5
 
 
 int8_t wakeup_magH(void){
-    cmd_data[0] = 0b10001101; //  10001101 :temp comp enable[1]+reboot[0]+softrst[0]+lowpower[0]+ODR[11]+MODE[01]
+    cmd_data[0] = 0b10001100; //  10001101 :temp comp enable[1]+reboot[0]+softrst[0]+lowpower[0]+ODR[11]+MODE[00]
     I2C_Master_WriteReg(MAG_SLAVE_ADDR, CFG_REG_A, cmd_data, 1);
     _delay_cycles(5000);
     cmd_data[0] = 0b00000011;
