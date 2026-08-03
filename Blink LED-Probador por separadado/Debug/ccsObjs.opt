@@ -1,4 +1,5 @@
 "./RAK_driver.obj"
+"./auxfuncs.obj"
 "./circular_buffer.obj"
 "./i2c_driver.obj"
 "./low_power_manager.obj"

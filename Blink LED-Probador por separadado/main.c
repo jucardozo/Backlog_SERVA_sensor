@@ -57,6 +57,7 @@
 #include "i2c_driver.h"
 #include "supervisor.h"
 #include "low_power_manager.h"
+#include "auxfuncs.h"
 
 
 
@@ -66,22 +67,24 @@
 
 void initClockTo8MHz(void);
 bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag);
-void send_status(bool isturning);
+void send_status(bool isturning,bool ismoving);
 
 
 
 #define COUNT_TOTAL     10    // Cantidad de muestra que toma
 
+#define THRESHOLD_ACC       200    /* ajustar empíricamente en campo */
+#define THRESHOLD_MAG       200    /* ajustar empíricamente en campo */
 
-#define THRESHOLD_ACC       700    /* ajustar empíricamente en campo */
-#define THRESHOLD_MAG       28000    /* ajustar empíricamente en campo */
-
+#define BUFFERLENRAW        128
+#define ENVELOPEBUFFERLEN   60
 
 /* Bits del byte de estado */
 /* 000X XX00*/
 #define BIT_POWER        (1 << 4)
 #define BIT_BATERIA_BAJA (1 << 3)
-#define BIT_GIRO         (1 << 2)
+#define BIT_GIRO         (1 << 2)   // depende del mag.
+#define BIT_MOVIMIENTO   (1 << 1)   // depende del acc.
 
 /*
     0b 0001 0000 = 0x10
@@ -105,42 +108,84 @@ uint8_t Serva_Status = 0;
 
 
 
+int16_t last_acc_readings[BUFFERLENRAW]         = {0};
+int16_t last_acc_readings_envelope[ENVELOPEBUFFERLEN] = {0};
+int16_t last_mag_readings[BUFFERLENRAW]         = {0};
+int16_t last_mag_readings_envelope[ENVELOPEBUFFERLEN] = {0};
+
+
+
+/*******************/
+/*******MAIN*******  /
+/*******************/
+
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;
     initClockTo8MHz();
     init_magacc_driver();
 
-    init_uart_drv();
+    init_uart_drv();  //ojo creo q tengo que sacarlo
     __bis_SR_register(GIE);
 
+
+    /* Precargar buffers con primera medición */
+    int16_t ax, ay, az, mx, my, mz;
+    read_acc(&ax, &ay, &az);
+    read_mag(&mx, &my, &mz);
+
+    int i;
+    for(i = 0; i < BUFFERLENRAW; i++)
+    {
+        last_acc_readings[i] = ax;
+        last_mag_readings[i] = mx;
+    }
+
     /* Inicializar RTC para despertar cada ~1 segundo */
-    init_timer(800);
+    //init_timer(400);
 
     int16_t readingval_acc = 0;
     int16_t readingval_mag = 0;
 
 
+/********************MAIN LOOP************************************************** */
+
     while(1)
     {
-
+        /*collect_sample toma COUNT_TOTAL muestras de mag y acc y devuelve true con el promedio de cada uno*/
         if(collect_sample(&readingval_acc, &readingval_mag))
         {
-            /* Valor absoluto del promedio */
-            /* Comparar con umbral */
-            bool isturning_acc = (abs(readingval_acc) > THRESHOLD_ACC);
-            bool isturning_mag = ((readingval_mag) > THRESHOLD_MAG);
+            /* --- Acelerómetro con media móvil --- */
+           
+            append_and_shift(last_acc_readings, BUFFERLENRAW, readingval_acc); //Guarda el promedio en Last_acc_reading 
+            int16_t mean_corrected_acc = readingval_acc - get_mean(last_acc_readings, BUFFERLENRAW); // Sacamos la media de los ultimos promedios y lo restamos al promedio de la ultima medicion
+            if(mean_corrected_acc < 0) mean_corrected_acc = -mean_corrected_acc; //Sacamos el valor absoluto
+            append_and_shift(last_acc_readings_envelope, ENVELOPEBUFFERLEN, mean_corrected_acc); //Guardamos el promedio sin el offset q hubo. PRomedio centrado en cero. 
+            int16_t result_acc = get_mean(last_acc_readings_envelope, ENVELOPEBUFFERLEN);
 
-            /* Votacion Para decidir si esta rotando o no */
-            bool isturning = isturning_acc || isturning_mag;
+            /* Magnetómetro */
+            append_and_shift(last_mag_readings, BUFFERLENRAW, readingval_mag);
+            int16_t mean_corrected_mag = readingval_mag - get_mean(last_mag_readings, BUFFERLENRAW);
+            if(mean_corrected_mag < 0) mean_corrected_mag = -mean_corrected_mag;
+            append_and_shift(last_mag_readings_envelope, ENVELOPEBUFFERLEN, mean_corrected_mag);
+            int16_t result_mag = get_mean(last_mag_readings_envelope, ENVELOPEBUFFERLEN);
 
-            /* Mandar status */
-            send_status(isturning);
+            /* --- Decisión --- */
+            bool isturning = (result_mag > THRESHOLD_MAG);
+            bool ismoving = (result_acc > THRESHOLD_ACC);
+            send_status(isturning,ismoving);
         }
         _delay_cycles(50000);  // ~10ms entre muestras
-        enter_lpm();  // ← duerme hasta el próximo tick del RTC
+    //   enter_lpm();  // ← duerme hasta el próximo tick del RTC
     }
 }
+
+
+
+
+/*******************/
+/* HELPER FUNCTIONS */
+/*******************/
 
 void initClockTo8MHz(void)              //Activo el clock de 8MHz
 {
@@ -170,7 +215,7 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
     read_mag(&magx, &magy, &magz);
 
     suma_acc = suma_acc + (int32_t)accx;
-    suma_mag = suma_mag +((int32_t)magx * magx) + ((int32_t)magy * magy);  //suma_mag = suma_mag + (magx² + magy²)
+    suma_mag = suma_mag + (int32_t)magx;  
     count += 1;
 
     bool retval = false;
@@ -186,10 +231,11 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
     return retval;
 }
 
-void send_status(bool isturning)
+void send_status(bool isturning,bool ismoving)
 {
     Serva_Status = BIT_POWER;
     if(isturning)            Serva_Status |= BIT_GIRO;
+    if(ismoving)        Serva_Status |= BIT_MOVIMIENTO;
     if(get_batery_status())  Serva_Status |= BIT_BATERIA_BAJA;
 
     char payload[3];

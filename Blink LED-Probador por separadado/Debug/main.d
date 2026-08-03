@@ -48,6 +48,7 @@ main.obj: ../uart_drv.h
 main.obj: ../i2c_driver.h
 main.obj: ../supervisor.h
 main.obj: ../low_power_manager.h
+main.obj: ../auxfuncs.h
 
 ../main.c:
 
@@ -144,4 +145,6 @@ C:/Users/Usuario/workspace_Bric/Blink\ LED/driverlib/MSP430FR2xx_4xx/eusci_b_spi
 ../supervisor.h:
 
 ../low_power_manager.h:
+
+../auxfuncs.h:
 

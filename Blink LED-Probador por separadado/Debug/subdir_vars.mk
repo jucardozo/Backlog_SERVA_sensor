@@ -10,6 +10,7 @@ CMD_SRCS += \
 
 C_SRCS += \
 ../RAK_driver.c \
+../auxfuncs.c \
 ../circular_buffer.c \
 ../i2c_driver.c \
 ../low_power_manager.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 
 C_DEPS += \
 ./RAK_driver.d \
+./auxfuncs.d \
 ./circular_buffer.d \
 ./i2c_driver.d \
 ./low_power_manager.d \
@@ -32,6 +34,7 @@ C_DEPS += \
 
 OBJS += \
 ./RAK_driver.obj \
+./auxfuncs.obj \
 ./circular_buffer.obj \
 ./i2c_driver.obj \
 ./low_power_manager.obj \
@@ -43,6 +46,7 @@ OBJS += \
 
 OBJS__QUOTED += \
 "RAK_driver.obj" \
+"auxfuncs.obj" \
 "circular_buffer.obj" \
 "i2c_driver.obj" \
 "low_power_manager.obj" \
@@ -54,6 +58,7 @@ OBJS__QUOTED += \
 
 C_DEPS__QUOTED += \
 "RAK_driver.d" \
+"auxfuncs.d" \
 "circular_buffer.d" \
 "i2c_driver.d" \
 "low_power_manager.d" \
@@ -65,6 +70,7 @@ C_DEPS__QUOTED += \
 
 C_SRCS__QUOTED += \
 "../RAK_driver.c" \
+"../auxfuncs.c" \
 "../circular_buffer.c" \
 "../i2c_driver.c" \
 "../low_power_manager.c" \
