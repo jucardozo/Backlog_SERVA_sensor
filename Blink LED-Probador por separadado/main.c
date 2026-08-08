@@ -68,16 +68,23 @@
 void initClockTo8MHz(void);
 bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag);
 void send_status(bool isturning,bool ismoving);
+bool is_rf_time();
 
 
-
+/********************DEFINES**************************** */
 #define COUNT_TOTAL     10    // Cantidad de muestra que toma
 
-#define THRESHOLD_ACC       200    /* ajustar empíricamente en campo */
-#define THRESHOLD_MAG       200    /* ajustar empíricamente en campo */
+#define REAL_MINUTES_TILL_RF  1        // cambiar a 60 para producción
+#define CYCLES_TILL_RF        REAL_MINUTES_TILL_RF * (60 / COUNT_TOTAL)
+#define SEC_COUNT 5                    //Tiempo de instalacion . WARM_up
+
+
+
+#define THRESHOLD_ACC       25    /* ajustar empíricamente en campo */
+#define THRESHOLD_MAG       25    /* ajustar empíricamente en campo */
 
 #define BUFFERLENRAW        128
-#define ENVELOPEBUFFERLEN   60
+#define ENVELOPEBUFFERLEN   10   // antes 60
 
 /* Bits del byte de estado */
 /* 000X XX00*/
@@ -87,22 +94,20 @@ void send_status(bool isturning,bool ismoving);
 #define BIT_MOVIMIENTO   (1 << 1)   // depende del acc.
 
 /*
-    0b 0001 0000 = 0x10
-BIT_POWER = 1 → bit 4
-BIT_BATERIA_BAJA = 0 → batería OK
-BIT_GIRO = 0 → no gira
+ * Combinaciones posibles:
+ * 0x10 = xxx1 000x → Power ON, bat OK,  no gira, no bombea
+ * 0x12 = xxx1 001x → Power ON, bat OK,  no gira, bombea
+ * 0x16 = xxx1 011x → Power ON, bat OK,  gira,    bombea
+ * 0x18 = xxx1 100x → Power ON, bat BAJA, no gira, no bombea
+ * 0x1A = xxx1 101x → Power ON, bat BAJA, no gira, bombea
+ * 0x1E = xxx1 111x → Power ON, bat BAJA, gira,    bombea
 
-    0b 0001 0100 = 0x14
-BIT_POWER = 1 → bit 4
-BIT_BATERIA_BAJA = 0 → batería OK
-BIT_GIRO = 1 → no gira
+ *Por como esta la instalacino creo q no es posible xq para que gire tiene que bombear.
+ *0x1C = xxx1 110x → Power ON, bat BAJA, gira,    no bombea
+ *0x14 = xxx1 010x → Power ON, bat OK,  gira,    no bombea 
+ */
 
-   0b 0001 1000 = 0x18
-BIT_POWER = 1 → bit 4
-BIT_BATERIA_BAJA = 1 → batería baja
-BIT_GIRO = 0 → no gira
 
-*/
 
 uint8_t Serva_Status = 0;
 
@@ -125,8 +130,23 @@ int main(void)
     initClockTo8MHz();
     init_magacc_driver();
 
-    init_uart_drv();  //ojo creo q tengo que sacarlo
+ //   init_uart_drv();  //ojo creo q tengo que sacarlo
     __bis_SR_register(GIE);
+
+    int second_count = SEC_COUNT;
+    int minutes_to_begin = 1;
+    int cycles_to_begin = minutes_to_begin * 60 / second_count;
+
+    while((cycles_to_begin--) > 0)
+    {
+        send_status(true, false);  // keep alive -- 0X14
+    
+        while((second_count--) > 0)
+        {
+            enter_lpm();
+        }
+    second_count = SEC_COUNT;
+    }
 
 
     /* Precargar buffers con primera medición */
@@ -138,11 +158,11 @@ int main(void)
     for(i = 0; i < BUFFERLENRAW; i++)
     {
         last_acc_readings[i] = ax;
-        last_mag_readings[i] = mx;
+        last_mag_readings[i] = my;
     }
 
     /* Inicializar RTC para despertar cada ~1 segundo */
-    //init_timer(400);
+    init_timer(800); //800 para que se despierte a 1 segundo
 
     int16_t readingval_acc = 0;
     int16_t readingval_mag = 0;
@@ -170,13 +190,21 @@ int main(void)
             append_and_shift(last_mag_readings_envelope, ENVELOPEBUFFERLEN, mean_corrected_mag);
             int16_t result_mag = get_mean(last_mag_readings_envelope, ENVELOPEBUFFERLEN);
 
-            /* --- Decisión --- */
-            bool isturning = (result_mag > THRESHOLD_MAG);
-            bool ismoving = (result_acc > THRESHOLD_ACC);
-            send_status(isturning,ismoving);
+           
+            //bool isturning = (result_mag > THRESHOLD_MAG);
+            //bool ismoving = (result_acc > THRESHOLD_ACC);
+            if(is_rf_time())
+            {
+                 /* --- Decisión --- */
+                bool isturning = (result_mag > THRESHOLD_MAG);
+                bool ismoving = (result_acc > THRESHOLD_ACC);
+                
+                send_status(isturning, ismoving);
+            }
+           
         }
-        _delay_cycles(50000);  // ~10ms entre muestras
-    //   enter_lpm();  // ← duerme hasta el próximo tick del RTC
+        //_delay_cycles(50000);  // ~10ms entre muestras
+        enter_lpm();  // ← duerme hasta el próximo tick del RTC
     }
 }
 
@@ -215,7 +243,7 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
     read_mag(&magx, &magy, &magz);
 
     suma_acc = suma_acc + (int32_t)accx;
-    suma_mag = suma_mag + (int32_t)magx;  
+    suma_mag = suma_mag + (int32_t)magy;  
     count += 1;
 
     bool retval = false;
@@ -234,8 +262,13 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
 void send_status(bool isturning,bool ismoving)
 {
     Serva_Status = BIT_POWER;
-    if(isturning)            Serva_Status |= BIT_GIRO;
-    if(ismoving)        Serva_Status |= BIT_MOVIMIENTO;
+    if(isturning)
+    {
+        Serva_Status |= BIT_GIRO;
+        Serva_Status |= BIT_MOVIMIENTO;     //Momentaneo. Hasta que vea como puedo ver que este prendida la bomba.
+    }
+
+   // if(ismoving)        Serva_Status |= BIT_MOVIMIENTO;
     if(get_batery_status())  Serva_Status |= BIT_BATERIA_BAJA;
 
     char payload[3];
@@ -249,4 +282,16 @@ void send_status(bool isturning,bool ismoving)
 }
 
 
+bool is_rf_time()
+{
+    static int count = 0;
+    count += 1;
+    bool ret = false;
+    if (count == CYCLES_TILL_RF)
+    {
+        ret   = true;
+        count = 0;
+    }
+    return ret;
+}
 
