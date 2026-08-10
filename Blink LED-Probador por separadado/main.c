@@ -126,20 +126,28 @@ int16_t last_mag_readings_envelope[ENVELOPEBUFFERLEN] = {0};
 
 int main(void)
 {
+    
     WDTCTL = WDTPW | WDTHOLD;
     initClockTo8MHz();
     init_magacc_driver();
 
- //   init_uart_drv();  //ojo creo q tengo que sacarlo
+ 
     __bis_SR_register(GIE);
 
+    rak3172_init();
+
+
+    /* Inicializar RTC para despertar cada ~1 segundo */
+    init_timer(400); //800 para que se despierte a 1 segundo
+
+
     int second_count = SEC_COUNT;
-    int minutes_to_begin = 1;
+    int minutes_to_begin = 1; 
     int cycles_to_begin = minutes_to_begin * 60 / second_count;
 
     while((cycles_to_begin--) > 0)
     {
-        send_status(true, false);  // keep alive -- 0X14
+       // send_status(true, false);  // keep alive -- 0X14
     
         while((second_count--) > 0)
         {
@@ -160,9 +168,6 @@ int main(void)
         last_acc_readings[i] = ax;
         last_mag_readings[i] = my;
     }
-
-    /* Inicializar RTC para despertar cada ~1 segundo */
-    init_timer(800); //800 para que se despierte a 1 segundo
 
     int16_t readingval_acc = 0;
     int16_t readingval_mag = 0;
@@ -271,15 +276,19 @@ void send_status(bool isturning,bool ismoving)
    // if(ismoving)        Serva_Status |= BIT_MOVIMIENTO;
     if(get_batery_status())  Serva_Status |= BIT_BATERIA_BAJA;
 
-    char payload[3];
-    payload[0] = "0123456789ABCDEF"[(Serva_Status >> 4) & 0xF];
-    payload[1] = "0123456789ABCDEF"[Serva_Status & 0xF];
-    payload[2] = '\0';
+    send_msg("AT+PRECV=0\r\n", 12);
+    __delay_cycles(800000);
+    char full_cmd[14];
+    strcpy(full_cmd, "AT+PSEND=");
+    full_cmd[9]  = "0123456789ABCDEF"[(Serva_Status >> 4) & 0xF];
+    full_cmd[10] = "0123456789ABCDEF"[Serva_Status & 0xF];
+    full_cmd[11] = '\r';
+    full_cmd[12] = '\n';
+    full_cmd[13] = '\0';
 
-    send_msg("AT+PSEND=", 9);
-    send_msg(payload, 2);
-    send_msg("\r\n", 2);
+    send_msg(full_cmd, 13);
 }
+
 
 
 bool is_rf_time()

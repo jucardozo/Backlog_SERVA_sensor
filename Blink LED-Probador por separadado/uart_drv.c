@@ -109,41 +109,6 @@ char get_last_rx_byte(){
    return pop_out_data(&RXbuffer);
 }
 
-/*
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=USCI_A0_VECTOR
-__interrupt void USCI_A0_ISR(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
-#else
-#error Compiler not supported!
-#endif
-{
-  unsigned char aux_rx = 0;
-  unsigned char aux_tx = 0;
-  switch(__even_in_range(UCA0IV,USCI_UART_UCTXCPTIFG))
-  {
-    case USCI_NONE: break;
-    case USCI_UART_UCRXIFG:
-        aux_rx = UCA0RXBUF;
-        pop_in_data(&RXbuffer, aux_rx);
-        __no_operation();
-        break;
-    case USCI_UART_UCTXIFG:
-        // Transmit the byte
-        aux_tx = pop_out_data(&TXbuffer);
-        UCA0TXBUF = aux_tx;
-        // If last byte sent, disable the interrupt
-        if((TXbuffer.distance) >= BUFSIZE)
-        {
-            UCA0IE &= ~UCTXIE;
-        }
-        break;
-    case USCI_UART_UCSTTIFG: break;
-    case USCI_UART_UCTXCPTIFG: break;
-    default: break;
-  }
-}*/
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCI_A0_VECTOR
