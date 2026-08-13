@@ -1,7 +1,7 @@
 ******************************************************************************
                   MSP430 Linker PC v21.6.1                     
 ******************************************************************************
->> Linked Mon Aug 10 15:49:17 2026
+>> Linked Wed Aug 12 19:19:02 2026
 
 OUTPUT FILE NAME:   <Blink LED.out>
 ENTRY POINT SYMBOL: "_c_int00_noargs_mpu"  address: 00008154
@@ -70,7 +70,7 @@ MEMORY CONFIGURATION
   INT44                 0000fffa   00000002  00000002  00000000  RWIX
   INT45                 0000fffc   00000002  00000002  00000000  RWIX
   RESET                 0000fffe   00000002  00000002  00000000  RWIX
-  FRAM2                 00010000   00008000  00001190  00006e70  RWIX
+  FRAM2                 00010000   00008000  00001194  00006e6c  RWIX
   ROMLIB                000c0000   00004000  00000000  00004000  RWIX
   BSL1                  000ffc00   00000400  00000000  00000400  RWIX
 
@@ -243,7 +243,7 @@ SYSNMI     0    0000fffc    00000002
 .reset     0    0000fffe    00000002     
                   0000fffe    00000002     rts430x_lc_sd_eabi.lib : boot.c.obj (.reset)
 
-.text      0    00010000    00001190     
+.text      0    00010000    00001194     
                   00010000    0000034e     rts430x_lc_sd_eabi.lib : div64u.c.obj (.text:__mspabi_divull)
                   0001034e    00000166     main.obj (.text:main)
                   000104b4    0000013c     rts430x_lc_sd_eabi.lib : div64s.c.obj (.text:__mspabi_divlli)
@@ -281,25 +281,25 @@ SYSNMI     0    0000fffc    00000002
                   00011028    0000001c     i2c_driver.obj (.text:CopyArray)
                   00011044    0000001c     supervisor.obj (.text:get_batery_status)
                   00011060    0000001a     gpio.obj (.text:GPIO_getInputPinValue)
-                  0001107a    00000018     sensor_board.obj (.text:initGPIO)
-                  00011092    00000018     rts430x_lc_sd_eabi.lib : mult16_f5hw.asm.obj (.text)
-                  000110aa    00000016     wdt_a.obj (.text:WDT_A_hold)
-                  000110c0    00000016     sensor_board.obj (.text:initI2C)
-                  000110d6    00000016     sensor_board.obj (.text:init_magacc_driver)
-                  000110ec    00000016     main.obj (.text:is_rf_time)
-                  00011102    00000016     rts430x_lc_sd_eabi.lib : llabs.c.obj (.text:llabs)
-                  00011118    00000016                            : div16u.asm.obj (.text)
-                  0001112e    00000010     rtc.obj (.text:RTC_init)
-                  0001113e    00000010     rts430x_lc_sd_eabi.lib : lsr32.asm.obj (.text:l_lsr)
-                  0001114e    00000010                            : strcpy.c.obj (.text:strcpy)
-                  0001115e    0000000a     rtc.obj (.text:RTC_enableInterrupt)
-                  00011168    0000000a     low_power_manager.obj (.text:enter_lpm)
-                  00011172    00000006     rtc.obj (.text:RTC_clearInterrupt)
-                  00011178    00000006     rts430x_lc_sd_eabi.lib : exit.c.obj (.text:abort)
-                  0001117e    00000006     sensor_board.obj (.text:read_acc)
-                  00011184    00000006     sensor_board.obj (.text:read_mag)
-                  0001118a    00000004     rts430x_lc_sd_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
-                  0001118e    00000002                            : startup.c.obj (.text:_system_post_cinit)
+                  0001107a    0000001a     sensor_board.obj (.text:init_magacc_driver)
+                  00011094    00000018     sensor_board.obj (.text:initGPIO)
+                  000110ac    00000018     rts430x_lc_sd_eabi.lib : mult16_f5hw.asm.obj (.text)
+                  000110c4    00000016     wdt_a.obj (.text:WDT_A_hold)
+                  000110da    00000016     sensor_board.obj (.text:initI2C)
+                  000110f0    00000016     main.obj (.text:is_rf_time)
+                  00011106    00000016     rts430x_lc_sd_eabi.lib : llabs.c.obj (.text:llabs)
+                  0001111c    00000016                            : div16u.asm.obj (.text)
+                  00011132    00000010     rtc.obj (.text:RTC_init)
+                  00011142    00000010     rts430x_lc_sd_eabi.lib : lsr32.asm.obj (.text:l_lsr)
+                  00011152    00000010                            : strcpy.c.obj (.text:strcpy)
+                  00011162    0000000a     rtc.obj (.text:RTC_enableInterrupt)
+                  0001116c    0000000a     low_power_manager.obj (.text:enter_lpm)
+                  00011176    00000006     rtc.obj (.text:RTC_clearInterrupt)
+                  0001117c    00000006     rts430x_lc_sd_eabi.lib : exit.c.obj (.text:abort)
+                  00011182    00000006     sensor_board.obj (.text:read_acc)
+                  00011188    00000006     sensor_board.obj (.text:read_mag)
+                  0001118e    00000004     rts430x_lc_sd_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  00011192    00000002                            : startup.c.obj (.text:_system_post_cinit)
 
 MODULE SUMMARY
 
@@ -314,10 +314,10 @@ MODULE SUMMARY
        circular_buffer.obj          130    0         0      
        auxfuncs.obj                 114    0         0      
        low_power_manager.obj        94     2         0      
-       sensor_board.obj             80     0         0      
+       sensor_board.obj             84     0         0      
        supervisor.obj               28     0         0      
     +--+----------------------------+------+---------+---------+
-       Total:                       2208   210       1408   
+       Total:                       2212   210       1408   
                                                             
     .\driverlib\MSP430FR2xx_4xx\
        rtc.obj                      76     0         0      
@@ -385,7 +385,7 @@ MODULE SUMMARY
        Stack:                       0      0         160    
        Linker Generated:            0      43        0      
     +--+----------------------------+------+---------+---------+
-       Grand Total:                 4612   331       1568   
+       Grand Total:                 4616   331       1568   
 
 
 LINKER GENERATED COPY TABLES
@@ -485,7 +485,7 @@ address   name
 00000672  BAKMEM9                                
 00000673  BAKMEM9_H                              
 00000672  BAKMEM9_L                              
-00011178  C$$EXIT                                
+0001117c  C$$EXIT                                
 000008e0  CP0CTL0                                
 000008e1  CP0CTL0_H                              
 000008e0  CP0CTL0_L                              
@@ -839,9 +839,9 @@ address   name
 00000309  RTCMOD_H                               
 00000308  RTCMOD_L                               
 00008174  RTC_ISR                                
-00011172  RTC_clearInterrupt                     
-0001115e  RTC_enableInterrupt                    
-0001112e  RTC_init                               
+00011176  RTC_clearInterrupt                     
+00011162  RTC_enableInterrupt                    
+00011132  RTC_init                               
 00010f24  RTC_start                              
 0000252c  ReceiveBuffer                          
 00000100  SFRIE1                                 
@@ -1251,7 +1251,7 @@ address   name
 000001cc  WDTCTL                                 
 000001cd  WDTCTL_H                               
 000001cc  WDTCTL_L                               
-000110aa  WDT_A_hold                             
+000110c4  WDT_A_hold                             
 00004000  __STACK_END                            
 000000a0  __STACK_SIZE                           
 0000801c  __TI_CINIT_Base                        
@@ -1300,29 +1300,29 @@ ffffffff  __c_args__
 00010f7c  __mspabi_divi                          
 00010d26  __mspabi_divli                         
 000104b4  __mspabi_divlli                        
-00011118  __mspabi_divu                          
+0001111c  __mspabi_divu                          
 00010af0  __mspabi_divul                         
 00010000  __mspabi_divull                        
-00011092  __mspabi_mpyi_f5hw                     
+000110ac  __mspabi_mpyi_f5hw                     
 00010f7c  __mspabi_remi                          
 00010d26  __mspabi_remli                         
-00011118  __mspabi_remu                          
+0001111c  __mspabi_remu                          
 00010af0  __mspabi_remul                         
 00010e1c  __mspabi_sllll                         
 00010ca6  __mspabi_srall                         
-0001113e  __mspabi_srll                          
+00011142  __mspabi_srll                          
 00010e56  __mspabi_srlll                         
 00008154  _c_int00_noargs_mpu                    
 0000fffe  _reset_vector                          
 00003f60  _stack                                 
-0001118e  _system_post_cinit                     
-0001118a  _system_pre_init                       
-00011178  abort                                  
+00011192  _system_post_cinit                     
+0001118e  _system_pre_init                       
+0001117c  abort                                  
 00010ec8  append_and_shift                       
 00002576  buffer                                 
 0000257e  cmd_data                               
 000107ee  collect_sample                         
-00011168  enter_lpm                              
+0001116c  enter_lpm                              
 00008000  fram_rw_start                          
 00008000  fram_rx_start                          
 000109b4  get_acc_reading                        
@@ -1331,30 +1331,31 @@ ffffffff  __c_args__
 00010c22  get_mean                               
 00000001  info_fram_protection                   
 00010e90  initClockTo8MHz                        
-0001107a  initGPIO                               
-000110c0  initI2C                                
+00011094  initGPIO                               
+000110da  initI2C                                
 00011000  init_circular_buffer                   
-000110d6  init_magacc_driver                     
+0001107a  init_magacc_driver                     
 00010bdc  init_timer                             
 00010ce6  init_uart_drv                          
-000110ec  is_rf_time                             
+000110f0  is_rf_time                             
 0000232c  last_acc_readings                      
 00002540  last_acc_readings_envelope             
 0000242c  last_mag_readings                      
 00002554  last_mag_readings_envelope             
-00011102  llabs                                  
+00011106  llabs                                  
 0001034e  main                                   
 00010f50  pop_in_data                            
 00010ef6  pop_out_data                           
 00000001  program_fram_protection                
 000105f0  rak3172_init                           
-0001117e  read_acc                               
-00011184  read_mag                               
+00011182  read_acc                               
+00011188  read_mag                               
 00010fa8  send_msg                               
 000108b2  send_status                            
 00000000  start_protection_offset_address        
-0001114e  strcpy                                 
+00011152  strcpy                                 
 00010fd4  wakeup_acc                             
+UNDEFED   wakeup_gyro                            
 00010b48  wakeup_magH                            
 
 
@@ -2286,30 +2287,31 @@ address   name
 00011028  CopyArray                              
 00011044  get_batery_status                      
 00011060  GPIO_getInputPinValue                  
-0001107a  initGPIO                               
-00011092  __mspabi_mpyi_f5hw                     
-000110aa  WDT_A_hold                             
-000110c0  initI2C                                
-000110d6  init_magacc_driver                     
-000110ec  is_rf_time                             
-00011102  llabs                                  
-00011118  __mspabi_divu                          
-00011118  __mspabi_remu                          
-0001112e  RTC_init                               
-0001113e  __mspabi_srll                          
-0001114e  strcpy                                 
-0001115e  RTC_enableInterrupt                    
-00011168  enter_lpm                              
-00011172  RTC_clearInterrupt                     
-00011178  C$$EXIT                                
-00011178  abort                                  
-0001117e  read_acc                               
-00011184  read_mag                               
-0001118a  _system_pre_init                       
-0001118e  _system_post_cinit                     
+0001107a  init_magacc_driver                     
+00011094  initGPIO                               
+000110ac  __mspabi_mpyi_f5hw                     
+000110c4  WDT_A_hold                             
+000110da  initI2C                                
+000110f0  is_rf_time                             
+00011106  llabs                                  
+0001111c  __mspabi_divu                          
+0001111c  __mspabi_remu                          
+00011132  RTC_init                               
+00011142  __mspabi_srll                          
+00011152  strcpy                                 
+00011162  RTC_enableInterrupt                    
+0001116c  enter_lpm                              
+00011176  RTC_clearInterrupt                     
+0001117c  C$$EXIT                                
+0001117c  abort                                  
+00011182  read_acc                               
+00011188  read_mag                               
+0001118e  _system_pre_init                       
+00011192  _system_post_cinit                     
 ffffffff  __TI_pprof_out_hndl                    
 ffffffff  __TI_prof_data_size                    
 ffffffff  __TI_prof_data_start                   
 ffffffff  __c_args__                             
+UNDEFED   wakeup_gyro                            
 
-[949 symbols]
+[950 symbols]

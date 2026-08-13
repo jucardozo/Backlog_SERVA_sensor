@@ -145,9 +145,11 @@ int main(void)
     int minutes_to_begin = 1; 
     int cycles_to_begin = minutes_to_begin * 60 / second_count;
 
+
+    //Tiempo para la instalacion. 1 minuto.
     while((cycles_to_begin--) > 0)
     {
-       // send_status(true, false);  // keep alive -- 0X14
+        send_status(true, false);  // keep alive -- 0X14
     
         while((second_count--) > 0)
         {

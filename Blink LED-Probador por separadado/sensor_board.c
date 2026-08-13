@@ -188,6 +188,7 @@ void init_magacc_driver(){
     initI2C();
     wakeup_magH();
     wakeup_acc();
+    wakeup_gyro();
   
 }
 
