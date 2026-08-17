@@ -29,6 +29,9 @@ int8_t get_acc_reading(uint16_t *accx,uint16_t *accy,uint16_t *accz);
 int8_t turnoff_acc(void);
 int8_t turnoff_gyro(void);
 
+void wakeup_gyro(void);
+int8_t get_gyro_reading(uint16_t *gyrx, uint16_t *gyry, uint16_t *gyrz);
+
 int8_t wakeup_magH(void);
 int8_t wakeup_magL(void);
 int8_t get_mag_reading(uint16_t *magx,uint16_t *magy,uint16_t *magz);

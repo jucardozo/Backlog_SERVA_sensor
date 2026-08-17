@@ -152,3 +152,21 @@ event->magnetic.z =(float)raw.z * LIS2MDL_MAG_LSB * LIS2MDL_MILLIGAUSS_TO_MICROT
 *
 */
 
+
+void wakeup_gyro(void){
+    cmd_data[0] = 0x0B;   // LSB: ODR 800Hz, range ±125dps
+    cmd_data[1] = 0x40;   // MSB: gyr_mode = normal
+    I2C_Master_WriteReg(ACC_SLAVE_ADDR, GYRO_CONF_REG, cmd_data, 2);
+    _delay_cycles(400000); //45ms.
+    return 0;
+}
+
+int8_t get_gyro_reading(uint16_t *gyrx, uint16_t *gyry, uint16_t *gyrz){
+    I2C_Master_ReadReg(ACC_SLAVE_ADDR, GYRO_DATAX_REG, 8);  // 2 dummy + 6 datos
+    _delay_cycles(50000);
+    CopyArray(ReceiveBuffer, buffer, 8);
+    *gyrx = (buffer[3]<<8) + buffer[2];
+    *gyry = (buffer[5]<<8) + buffer[4];
+    *gyrz = (buffer[7]<<8) + buffer[6];
+    return 0;
+}

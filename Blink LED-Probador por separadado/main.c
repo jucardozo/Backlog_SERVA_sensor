@@ -66,7 +66,7 @@
 /***************************/
 
 void initClockTo8MHz(void);
-bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag);
+bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag,  float *angulo_gyro);
 void send_status(bool isturning,bool ismoving);
 bool is_rf_time();
 
@@ -110,6 +110,7 @@ bool is_rf_time();
 
 
 uint8_t Serva_Status = 0;
+float cal_gyro_z=0.0;
 
 
 
@@ -137,6 +138,9 @@ int main(void)
     rak3172_init();
 
 
+
+
+
     /* Inicializar RTC para despertar cada ~1 segundo */
     init_timer(400); //800 para que se despierte a 1 segundo
 
@@ -158,6 +162,17 @@ int main(void)
     second_count = SEC_COUNT;
     }
 
+    /* CALIBRACION GIROSCOPIO - varilla quieta */
+    float sum_z = 0;
+    int16_t gyrx_cal, gyry_cal, gyrz_cal;
+    int cal_i; 
+    for(cal_i = 0; cal_i < 30; cal_i++){  //Se toman 30 muestras en  30 segundos. 
+        read_gyro(&gyrx_cal, &gyry_cal, &gyrz_cal);
+        sum_z += (int16_t)gyrz_cal * 125.0 / 32768.0;
+        enter_lpm();  // esperar 1 segundo
+    }
+    cal_gyro_z = sum_z / 30.0;
+
 
     /* Precargar buffers con primera medición */
     int16_t ax, ay, az, mx, my, mz;
@@ -173,6 +188,8 @@ int main(void)
 
     int16_t readingval_acc = 0;
     int16_t readingval_mag = 0;
+    float angulo_gyro = 0.0;
+
 
 
 /********************MAIN LOOP************************************************** */
@@ -180,7 +197,7 @@ int main(void)
     while(1)
     {
         /*collect_sample toma COUNT_TOTAL muestras de mag y acc y devuelve true con el promedio de cada uno*/
-        if(collect_sample(&readingval_acc, &readingval_mag))
+        if(collect_sample(&readingval_acc, &readingval_mag, &angulo_gyro))
         {
             /* --- Acelerómetro con media móvil --- */
            
@@ -202,15 +219,18 @@ int main(void)
             //bool ismoving = (result_acc > THRESHOLD_ACC);
             if(is_rf_time())
             {
+                // Detección giroscopio
+                bool ismoving = (angulo_gyro >= 720.0 || angulo_gyro <= -720.0);
+                if(ismoving) angulo_gyro = 0.0;  // resetear
                  /* --- Decisión --- */
                 bool isturning = (result_mag > THRESHOLD_MAG);
-                bool ismoving = (result_acc > THRESHOLD_ACC);
+                //bool ismoving = (result_acc > THRESHOLD_ACC);
                 
                 send_status(isturning, ismoving);
             }
            
         }
-        //_delay_cycles(50000);  // ~10ms entre muestras
+      
         enter_lpm();  // ← duerme hasta el próximo tick del RTC
     }
 }
@@ -237,7 +257,7 @@ void initClockTo8MHz(void)              //Activo el clock de 8MHz
                                               // default DCODIV as MCLK and SMCLK source
 }
 
-bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
+bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag, float *angulo_gyro)
 {
     static int16_t count = 0;
     static int32_t suma_acc = 0;
@@ -245,12 +265,20 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag)
 
     int16_t accx = 0, accy = 0, accz = 0;
     int16_t magx = 0, magy = 0, magz = 0;
+    int16_t gyrx=0, gyry=0, gyrz=0;
 
     read_acc(&accx, &accy, &accz);
     read_mag(&magx, &magy, &magz);
+    read_gyro(&gyrx, &gyry, &gyrz);
 
     suma_acc = suma_acc + (int32_t)accx;
     suma_mag = suma_mag + (int32_t)magy;  
+
+    /* giroscopio */
+    float velocidad_z = ((int16_t)gyrz * 125.0 / 32768.0) - cal_gyro_z;
+    if(velocidad_z > -0.05 && velocidad_z < 0.05) velocidad_z = 0.0;
+    *angulo_gyro += velocidad_z;
+
     count += 1;
 
     bool retval = false;
@@ -272,10 +300,9 @@ void send_status(bool isturning,bool ismoving)
     if(isturning)
     {
         Serva_Status |= BIT_GIRO;
-        Serva_Status |= BIT_MOVIMIENTO;     //Momentaneo. Hasta que vea como puedo ver que este prendida la bomba.
     }
 
-   // if(ismoving)        Serva_Status |= BIT_MOVIMIENTO;
+    if(ismoving)        Serva_Status |= BIT_MOVIMIENTO;
     if(get_batery_status())  Serva_Status |= BIT_BATERIA_BAJA;
 
     send_msg("AT+PRECV=0\r\n", 12);

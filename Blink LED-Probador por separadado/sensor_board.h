@@ -12,6 +12,7 @@
 
 void read_mag(int16_t* magx,int16_t* magy,int16_t* magz);
 void read_acc(int16_t* accx,int16_t* accy,int16_t* accz);
+void read_gyro(int16_t* gyrx, int16_t* gyry, int16_t* gyrz);
 void init_magacc_driver();
 void reinit_magacc_driver();
 

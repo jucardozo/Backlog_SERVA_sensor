@@ -207,3 +207,7 @@ void read_mag(int16_t* magx,int16_t* magy,int16_t* magz){
 void read_acc(int16_t* accx,int16_t* accy,int16_t* accz){
     get_acc_reading(accx,accy,accz);
 }
+
+void read_gyro(int16_t* gyrx, int16_t* gyry, int16_t* gyrz){
+    get_gyro_reading(gyrx, gyry, gyrz);
+}
