@@ -135,8 +135,7 @@ int main(void)
  
     __bis_SR_register(GIE);
 
-    rak3172_init();
-
+    rak3172_init(); 
 
 
 
@@ -182,7 +181,7 @@ int main(void)
     int i;
     for(i = 0; i < BUFFERLENRAW; i++)
     {
-        last_acc_readings[i] = ax;
+        last_acc_readings[i] = az;
         last_mag_readings[i] = my;
     }
 
@@ -214,17 +213,20 @@ int main(void)
             append_and_shift(last_mag_readings_envelope, ENVELOPEBUFFERLEN, mean_corrected_mag);
             int16_t result_mag = get_mean(last_mag_readings_envelope, ENVELOPEBUFFERLEN);
 
-           
-            //bool isturning = (result_mag > THRESHOLD_MAG);
-            //bool ismoving = (result_acc > THRESHOLD_ACC);
+     
             if(is_rf_time())
             {
+                /* --- Decisión --- */
+
                 // Detección giroscopio
-                bool ismoving = (angulo_gyro >= 720.0 || angulo_gyro <= -720.0);
-                if(ismoving) angulo_gyro = 0.0;  // resetear
-                 /* --- Decisión --- */
-                bool isturning = (result_mag > THRESHOLD_MAG);
-                //bool ismoving = (result_acc > THRESHOLD_ACC);
+                bool isturning = (angulo_gyro >= 720.0 || angulo_gyro <= -720.0);
+                if(isturning) angulo_gyro = 0.0;  // resetear
+
+                 // Deteccion Magnetometro
+                //bool isturning = (result_mag > THRESHOLD_MAG);
+
+                // Deteccion Accelerometro
+                bool ismoving = (result_acc > THRESHOLD_ACC);
                 
                 send_status(isturning, ismoving);
             }
@@ -267,11 +269,11 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag, float *ang
     int16_t magx = 0, magy = 0, magz = 0;
     int16_t gyrx=0, gyry=0, gyrz=0;
 
-    read_acc(&accx, &accy, &accz);
+    read_acc(&accx, &accy, &accz);   
     read_mag(&magx, &magy, &magz);
     read_gyro(&gyrx, &gyry, &gyrz);
 
-    suma_acc = suma_acc + (int32_t)accx;
+    suma_acc = suma_acc + (int32_t)accz;
     suma_mag = suma_mag + (int32_t)magy;  
 
     /* giroscopio */
