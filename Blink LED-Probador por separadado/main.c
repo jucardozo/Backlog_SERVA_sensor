@@ -203,8 +203,22 @@ int main(void)
             append_and_shift(last_acc_readings, BUFFERLENRAW, readingval_acc); //Guarda el promedio en Last_acc_reading 
             int16_t mean_corrected_acc = readingval_acc - get_mean(last_acc_readings, BUFFERLENRAW); // Sacamos la media de los ultimos promedios y lo restamos al promedio de la ultima medicion
             if(mean_corrected_acc < 0) mean_corrected_acc = -mean_corrected_acc; //Sacamos el valor absoluto
+
+            /* Movement End Check */
+            static int count_zero_acc = 0;   //Si hay 25 muestras consecutivas con mean_corrected_acc == 0 → asumís que paró → limpiás la envolvente → result_acc baja a 0 inmediatamente.
+            if(mean_corrected_acc == 0) count_zero_acc++;
+            else count_zero_acc = 0;
+            if(count_zero_acc >= 25){
+                int j;
+                for(j = 0; j < ENVELOPEBUFFERLEN; j++)
+                last_acc_readings_envelope[j] = 0;
+                count_zero_acc = 0;
+            }
+
             append_and_shift(last_acc_readings_envelope, ENVELOPEBUFFERLEN, mean_corrected_acc); //Guardamos el promedio sin el offset q hubo. PRomedio centrado en cero. 
             int16_t result_acc = get_mean(last_acc_readings_envelope, ENVELOPEBUFFERLEN);
+
+
 
             /* Magnetómetro */
             append_and_shift(last_mag_readings, BUFFERLENRAW, readingval_mag);
