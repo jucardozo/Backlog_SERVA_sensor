@@ -72,9 +72,9 @@ bool is_rf_time();
 
 
 /********************DEFINES**************************** */
-#define COUNT_TOTAL     10    // Cantidad de muestra que toma
+#define COUNT_TOTAL     60    // Cantidad de muestra que toma
 
-#define REAL_MINUTES_TILL_RF  1        // cambiar a 60 para producción
+#define REAL_MINUTES_TILL_RF  60        // cambiar a 60 para producción
 #define CYCLES_TILL_RF        REAL_MINUTES_TILL_RF * (60 / COUNT_TOTAL)
 #define SEC_COUNT 5                    //Tiempo de instalacion . WARM_up
 
@@ -84,7 +84,7 @@ bool is_rf_time();
 #define THRESHOLD_MAG       25    /* ajustar empíricamente en campo */
 
 #define BUFFERLENRAW        128
-#define ENVELOPEBUFFERLEN   10   // antes 60
+#define ENVELOPEBUFFERLEN   60   // antes 60
 
 /* Bits del byte de estado */
 /* 000X XX00*/
@@ -110,7 +110,7 @@ bool is_rf_time();
 
 
 uint8_t Serva_Status = 0;
-float cal_gyro_z=0.0;
+float cal_gyro_y=0.0;  //cal_gyro_y
 
 
 
@@ -141,7 +141,7 @@ int main(void)
 
 
     /* Inicializar RTC para despertar cada ~1 segundo */
-    init_timer(400); //800 para que se despierte a 1 segundo
+    init_timer(800); //800 para que se despierte a 1 segundo
 
 
     int second_count = SEC_COUNT;
@@ -167,10 +167,10 @@ int main(void)
     int cal_i; 
     for(cal_i = 0; cal_i < 30; cal_i++){  //Se toman 30 muestras en  30 segundos. 
         read_gyro(&gyrx_cal, &gyry_cal, &gyrz_cal);
-        sum_z += (int16_t)gyrz_cal * 125.0 / 32768.0;
+        sum_z += (int16_t)gyry_cal * 125.0 / 32768.0;
         enter_lpm();  // esperar 1 segundo
     }
-    cal_gyro_z = sum_z / 30.0;
+    cal_gyro_y = sum_z / 30.0;
 
 
     /* Precargar buffers con primera medición */
@@ -181,8 +181,8 @@ int main(void)
     int i;
     for(i = 0; i < BUFFERLENRAW; i++)
     {
-        last_acc_readings[i] = az;
-        last_mag_readings[i] = my;
+        last_acc_readings[i] = ay;
+        last_mag_readings[i] = mz;
     }
 
     int16_t readingval_acc = 0;
@@ -287,13 +287,13 @@ bool collect_sample(int16_t *readingval_acc, int16_t *readingval_mag, float *ang
     read_mag(&magx, &magy, &magz);
     read_gyro(&gyrx, &gyry, &gyrz);
 
-    suma_acc = suma_acc + (int32_t)accz;
-    suma_mag = suma_mag + (int32_t)magy;  
+    suma_acc = suma_acc + (int32_t)accy;   //accy
+    suma_mag = suma_mag + (int32_t)magz;    //magz
 
     /* giroscopio */
-    float velocidad_z = ((int16_t)gyrz * 125.0 / 32768.0) - cal_gyro_z;
-    if(velocidad_z > -0.05 && velocidad_z < 0.05) velocidad_z = 0.0;
-    *angulo_gyro += velocidad_z;
+    float velocidad_y = ((int16_t)gyry * 125.0 / 32768.0) - cal_gyro_y;  //  float velocidad_y = ((int16_t)gyry * 125.0 / 32768.0) - cal_gyro_y;
+    if(velocidad_y > -0.05 && velocidad_y < 0.05) velocidad_y = 0.0; // if(velocidad_y > -0.05 && velocidad_y < 0.05) velocidad_y = 0.0;
+    *angulo_gyro += velocidad_y;                 //velocidad_y
 
     count += 1;
 

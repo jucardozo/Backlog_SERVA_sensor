@@ -13,6 +13,8 @@
 
 
 
+
+
 /********************************PRIVADAS******************************************************** */
 static bool rak_cmd_expect(char* cmd, char* expected);
 
@@ -88,6 +90,10 @@ void rak3172_init(void)
 
     send_msg("AT+PTP=14\r\n", 11);
     __delay_cycles(800000);
+
+    send_msg("AT+SYNCWORD= 3444 \r\n", 18);
+    __delay_cycles(800000);
+
 }
 
 /* =========================================================================
